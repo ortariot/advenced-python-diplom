@@ -108,5 +108,5 @@ class VkinderAppDb():
         return [i[0] for i in out.fetchall()]
 
 if __name__ == '__main__':
-    database = VkinderAppDb('postgres', 'mitgard5995',
+    database = VkinderAppDb('postgres', 'postgres',
                             'vkinder', 'vkinder', False)

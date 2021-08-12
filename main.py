@@ -21,6 +21,7 @@ class MenuState(BaseStateGroup):
     ID = 3
     AGE = 4
     CITY = 5
+    AGAIN = 6
 
 
 class VKinderInterface():
@@ -50,10 +51,11 @@ class VKinderInterface():
             for p_id in profile['photo_id']:
                 await message.answer(attachment=f"photo{profile['id']}_{p_id}")
 
-        # self.search_parameter.clear()
-        await message.answer('Это все кого я нашёл, чем займёся теперь?',
+        self.search_parameter.clear()
+        await message.answer('Это все кого я нашёл, чем займёмся теперь?',
                              keyboard=KEYBOARD_BANK['end_keyboard']
                              )
+        await self.bot.state_dispenser.set(message.peer_id, MenuState.AGAIN)
 
     async def auto_parameters(self, message, id=None):
         if id:
@@ -209,7 +211,7 @@ if __name__ == '__main__':
         await interface.push_search(message)
 
     @bot.on.message(text=["Снова искать"])
-    @bot.on.message(state=None, payload={"command": 'again'})
+    @bot.on.message(state=MenuState.AGAIN, payload={"command": 'again'})
     async def searching_again(message: Message):
         await interface.again(message)
 
