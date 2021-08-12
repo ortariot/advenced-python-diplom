@@ -3,8 +3,6 @@ import time
 import datetime
 from database import VkinderAppDb
 
-DATABASE_SU_USER = 'postgres'
-DATABASE_SU_PASS = 'postgres'
 DATABASE_U_USER = 'vkinder'
 DATABASE_U_PASS = 'vkinder'
 
@@ -22,12 +20,7 @@ class VkSimpleApi():
 
     def __init__(self, token):
         self.api = API(token)
-        self.db = VkinderAppDb(DATABASE_SU_USER, DATABASE_SU_PASS,
-                               DATABASE_U_USER, DATABASE_U_PASS)
-
-    def add_user_id_to_db(self, id):
-        self.curent_user_id = id
-        self.db_user_id = self.db.load_users(self.curent_user_id)
+        self.db = VkinderAppDb(DATABASE_U_USER, DATABASE_U_PASS)
 
     async def user_get(self, vk_id: str) -> dict:
         u_params = {'user_ids': vk_id,
@@ -36,13 +29,13 @@ class VkSimpleApi():
 
         year = datetime.datetime.now().year
         profile = await self.api.request('users.get', u_params)
-        self.add_user_id_to_db(profile['response'][0]['id'])
 
         search_parameter = {'gender': None,
                             'age_from': None,
                             'age_to': None,
                             'status': 'search',
-                            'city': None
+                            'city': None,
+                            'user_id': profile['response'][0]['id']
                             }
 
         gender_inverter = {1: 2,
@@ -64,7 +57,7 @@ class VkSimpleApi():
                 ]
 
     async def user_search(self, gender: str, age_from: int, age_to: int,
-                          city: str, status: str) -> dict:
+                          city: str, status: str, user_id) -> dict:
         u_params = {'sort': 0,
                     'count': 1000,
                     'hometown': city,
@@ -77,7 +70,7 @@ class VkSimpleApi():
 
         profiles = await self.api.request('users.search', u_params)
 
-        profile_list = self.db.get_profile_list(self.curent_user_id)
+        profile_list = self.db.get_profile_list(user_id)
 
         out_list = []
         for usr in profiles['response']['items']:
@@ -93,6 +86,8 @@ class VkSimpleApi():
             if len(out_list) == 20:
                 break
 
+        db_user_id = self.db.load_users(user_id)
+
         for usr in out_list:
             p_params = {'owner_id': usr['id'],
                         'album_id': 'profile',
@@ -101,7 +96,7 @@ class VkSimpleApi():
             usr_photos = await self.api.request('photos.get', p_params)
 
             db_profile_id = self.db.load_profile(usr['id'], False, False)
-            self.db.load_users_profile(self.db_user_id, db_profile_id)
+            self.db.load_users_profile(db_user_id, db_profile_id)
 
             tmp = [{'likes': photo['likes']['count'],
                     'photo_id': photo['id']

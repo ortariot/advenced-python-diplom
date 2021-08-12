@@ -30,7 +30,8 @@ class VKinderInterface():
                         'age_from': None,
                         'age_to': None,
                         'city': None,
-                        'status': None
+                        'status': None,
+                        'user_id': None
                         }
 
     def __init__(self, api, bot):
@@ -43,7 +44,8 @@ class VKinderInterface():
                                            self.search_parameter['age_from'],
                                            self.search_parameter['age_to'],
                                            self.search_parameter['city'],
-                                           self.search_parameter['status']
+                                           self.search_parameter['status'],
+                                           self.search_parameter['user_id']
                                            )
         await message.answer(f'По твоему запросу найдено {len(users)} анкет:')
 
@@ -171,8 +173,8 @@ class VKinderInterface():
 
 
 if __name__ == '__main__':
-    token = ''
-    app_token = ''
+    token = 'f6b11596869c2c7caf7420af7a456e7f52e82faf56a6d5fe17964666c48dea82f1beefa2f7ed9b05e67f0'
+    app_token = 'b96ddcc35240f5643e49604ca80cee4209a5be8741c7087034418a43aefe1f3a4ea9efdc2c7960277a3ff'
 
     bot = Bot(token)
     api = VkSimpleApi(app_token)
@@ -192,7 +194,7 @@ if __name__ == '__main__':
     @bot.on.message(text=['Поиск по параметрам'])
     @bot.on.message(state=MenuState.TYPE, payload={"command": 'manual'})
     async def gender_choise_in(message: Message):
-        api.add_user_id_to_db(message.from_id)
+        interface.search_parameter['user_id'] = message.from_id
         await interface.gender_chose(message)
 
     @bot.on.message(text=['Для сына мамкиной подруги'])
