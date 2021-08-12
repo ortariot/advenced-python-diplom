@@ -21,7 +21,9 @@ class MenuState(BaseStateGroup):
     ID = 3
     AGE = 4
     CITY = 5
-    AGAIN = 6
+    END = 6
+    TYPE = 7
+
 
 
 class VKinderInterface():
@@ -55,7 +57,7 @@ class VKinderInterface():
         await message.answer('Это все кого я нашёл, чем займёмся теперь?',
                              keyboard=KEYBOARD_BANK['end_keyboard']
                              )
-        await self.bot.state_dispenser.set(message.peer_id, MenuState.AGAIN)
+        await self.bot.state_dispenser.set(message.peer_id, MenuState.END)
 
     async def auto_parameters(self, message, id=None):
         if id:
@@ -77,7 +79,7 @@ class VKinderInterface():
     async def group_invite(self, event):
         try:
             await self.bot.api.messages.send(peer_id=event.object.user_id,
-                           message=("Привет! Спасибо что подписался!"
+                           message=("Привет! Спасибо за подписку!"
                                     " Я бот способный подбирать интересных"
                                     " собеседников по твоим предпочтениям"
                                     ", если ты понимаешь о чём я говорю :-)"
@@ -88,6 +90,7 @@ class VKinderInterface():
                            random_id=0,
                            keyboard=KEYBOARD_BANK['start_keyboard'].get_json()
                            )
+            await self.bot.state_dispenser.set(event.object.user_id, MenuState.TYPE)
         except VKAPIError(901):
             pass
 
@@ -102,9 +105,10 @@ class VKinderInterface():
                               ),
                              keyboard=KEYBOARD_BANK['start_keyboard']
                              .get_json())
+        await self.bot.state_dispenser.set(message.peer_id, MenuState.TYPE)
 
     async def gender_chose(self, message):
-        if self.search_parameter['gender'] is None:
+        if self.search_parameter.get('gender', None) is None:
             await message.answer('Отлично! Выбрем нужный пол',
                                  keyboard=KEYBOARD_BANK['gender_choise']
                                  .get_json())
@@ -114,7 +118,7 @@ class VKinderInterface():
             await self.age_chose(message)
 
     async def age_chose(self, message):
-        if self.search_parameter['age_from'] is None:
+        if self.search_parameter.get('age_from', None) is None:
             await message.answer(('Давай определимся с возрастом '
                                   'просто пришли мне два числа разделённые'
                                   ' пробелом, и я буду искать в диапазоне'
@@ -125,7 +129,7 @@ class VKinderInterface():
             await self.city_chose(message)
 
     async def city_chose(self, message):
-        if self.search_parameter['city'] is None:
+        if self.search_parameter.get('city', None) is None:
             await message.answer(('Отлично! В каком городе будем искать?'
                                   ' Пришли мне в сообщение название города'
                                   )
@@ -135,7 +139,7 @@ class VKinderInterface():
             await self.status_chose(message)
 
     async def status_chose(self, message):
-        if self.search_parameter['status'] is None:
+        if self.search_parameter.get('status', None) is None:
             await message.answer(('И теперь самое сложное.'
                                  'Выберете статус искомых анкет'
                                   ),
@@ -182,18 +186,18 @@ if __name__ == '__main__':
         await interface.group_invite(event)
 
     @bot.on.message(text=['Найди какого-то для меня'])
-    @bot.on.message(state=None, payload={"command": 'smart'})
+    @bot.on.message(state=MenuState.TYPE, payload={"command": 'smart'})
     async def info(message: Message):
         await interface.auto_parameters(message)
 
     @bot.on.message(text=['Поиск по параметрам'])
-    @bot.on.message(state=None, payload={"command": 'manual'})
+    @bot.on.message(state=MenuState.TYPE, payload={"command": 'manual'})
     async def gender_choise_in(message: Message):
         api.add_user_id_to_db(message.from_id)
         await interface.gender_chose(message)
 
     @bot.on.message(text=['Для сына мамкиной подруги'])
-    @bot.on.message(state=None, payload={"command": 'son'})
+    @bot.on.message(state=MenuState.TYPE, payload={"command": 'son'})
     async def search_by_id(message: Message):
         await interface.search_for_any_id(message)
 
@@ -211,12 +215,12 @@ if __name__ == '__main__':
         await interface.push_search(message)
 
     @bot.on.message(text=["Снова искать"])
-    @bot.on.message(state=MenuState.AGAIN, payload={"command": 'again'})
+    @bot.on.message(state=MenuState.END, payload={"command": 'again'})
     async def searching_again(message: Message):
         await interface.again(message)
 
     @bot.on.message(text=['Я всех уже нашёл'])
-    @bot.on.message(state=None, payload={"command": 'end'})
+    @bot.on.message(state=MenuState.END, payload={"command": 'end'})
     async def goobay(message: Message):
         await interface.goodby(message)
 
@@ -232,8 +236,8 @@ if __name__ == '__main__':
     @bot.on.message(state=MenuState.AGE)
     async def set_age(message: Message):
         age = message.text.split(' ')
-        interface.search_parameter['age_from'] = age[0]
-        interface.search_parameter['age_to'] = age[1]
+        interface.search_parameter['age_from'] = age[0] if len(age) >= 1 else 0
+        interface.search_parameter['age_to'] = age[1] if len(age) >= 2 else 99
         await interface.city_chose(message)
 
     @bot.on.message(state=MenuState.CITY)
