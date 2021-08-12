@@ -51,7 +51,7 @@ class VKinderInterface():
                 await message.answer(attachment=f"photo{profile['id']}_{p_id}")
 
         # self.search_parameter.clear()
-        await message.answer('Это все кого я нашёл, чем заёмёся теперь?',
+        await message.answer('Это все кого я нашёл, чем займёся теперь?',
                              keyboard=KEYBOARD_BANK['end_keyboard']
                              )
 
