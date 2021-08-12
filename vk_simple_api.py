@@ -44,8 +44,12 @@ class VkSimpleApi():
                             'status': 'search',
                             'city': None
                             }
+
+        gender_inverter = {1: 2,
+                           2: 1
+                           }
         try:
-            search_parameter['gender'] = 1 if profile['response'][0]['sex'] == 2 else 2
+            search_parameter['gender'] = gender_inverter.get(profile['response'][0]['sex'], None)
             search_parameter['age_from'] = int(year) - int(profile['response'][0]['bdate'][5:]) - 4,
             search_parameter['age_to'] = int(year) - int(profile['response'][0]['bdate'][5:]) + 4
             search_parameter['city'] = profile['response'][0]['city']['title']

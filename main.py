@@ -25,7 +25,6 @@ class MenuState(BaseStateGroup):
     TYPE = 7
 
 
-
 class VKinderInterface():
     search_parameter = {'gender': None,
                         'age_from': None,
@@ -224,10 +223,6 @@ if __name__ == '__main__':
     async def goobay(message: Message):
         await interface.goodby(message)
 
-    @bot.on.message(state=None)
-    async def other(message: Message):
-        await interface.hello(message)
-
     @bot.on.message(state=MenuState.ID)
     async def set_user_id(message: Message):
         user_id = message.text
@@ -244,5 +239,9 @@ if __name__ == '__main__':
     async def set_city(message: Message):
         interface.search_parameter['city'] = message.text.strip()
         await interface.status_chose(message)
+
+    @bot.on.message()
+    async def other(message: Message):
+        await interface.hello(message)
 
     bot.run_forever()
