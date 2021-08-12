@@ -173,8 +173,8 @@ class VKinderInterface():
 
 
 if __name__ == '__main__':
-    token = 'f6b11596869c2c7caf7420af7a456e7f52e82faf56a6d5fe17964666c48dea82f1beefa2f7ed9b05e67f0'
-    app_token = 'b96ddcc35240f5643e49604ca80cee4209a5be8741c7087034418a43aefe1f3a4ea9efdc2c7960277a3ff'
+    token = ''
+    app_token = ''
 
     bot = Bot(token)
     api = VkSimpleApi(app_token)
